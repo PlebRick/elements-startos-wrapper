@@ -1,4 +1,5 @@
 import { sdk } from '../sdk'
+import { exposedStore } from '../store'
 import { getSecretPhrase } from '../utils'
 import { yamlFile } from './config/file-models/config.yml'
 import { setDependencies } from './dependencies/dependencies'
@@ -13,32 +14,17 @@ const install = sdk.setupInstall(async ({ effects }) => {
 
   await yamlFile.write({ name }, effects)
 
-  await sdk.store.setOwn(effects, '/secretPhrase', getSecretPhrase(name))
+  await sdk.store.setOwn(
+    effects,
+    sdk.StorePath.secretPhrase,
+    getSecretPhrase(name),
+  )
 })
 
 /**
  * Here we define arbitrary code that runs once, on uninstall only.
  */
 const uninstall = sdk.setupUninstall(async ({ effects }) => {})
-
-/**
- * Here we determine which values from the store, if any, should be exposed to the UI, or to dependent services, or both.
- */
-const exported = sdk.setupExports(({ effects }) => {
-  return {
-    /** Values exported to the UI are displayed in "Properties" according to the structure defined here. */
-    ui: {
-      'Secret Phrase': {
-        type: 'string',
-        path: '/secretPhrase',
-        copyable: true,
-        qr: false,
-        masked: true,
-      },
-    },
-    services: ['/nameLastUpdatedAt'],
-  }
-})
 
 /**
  * Plumbing. DO NOT EDIT.
@@ -49,5 +35,5 @@ export const { init, uninit } = sdk.setupInit(
   uninstall,
   setInterfaces,
   setDependencies,
-  exported,
+  exposedStore,
 )
